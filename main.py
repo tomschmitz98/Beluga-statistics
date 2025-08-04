@@ -695,7 +695,7 @@ class UwbDataProcessing:
                 else:
                     all_dist += trial.all_uwb_ranges
                     mean_dist = statistics.mean(all_dist)
-                # std_dev[distance] = trial.uwb_range['101'].range_stddev
+                std_dev[distance] = trial.uwb_range['101'].range_stddev
             if mean_dist is not None:
                 data[distance] = mean_dist
                 abs_err[distance] = abs(mean_dist - distance)
@@ -839,7 +839,7 @@ def main(show_plots: bool = False):
         data.plot_uwb_prr(dir_)
         data.plot_uwb_rx_power(dir_)
         data.plot_uwb_cir(dir_)
-        # data.plot_distance_error(dir_)
+        data.plot_distance_error(dir_)
         data.plot_uwb_rx_power_fp_power(dir_)
         data.plot_distance_hist(dir_)
         if show_plots:
