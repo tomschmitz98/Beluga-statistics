@@ -26,10 +26,33 @@ def _load_config_data(json_data: dict[str, str | int | bool]) -> pd.DataFrame:
     return pd.DataFrame(data)
 
 
-def _load_drop_data(json_data: dict) -> pd.DataFrame:
-    pass
+def _load_drop_data(json_data: dict[str, dict[str, dict[str, int | dict[str, int]]]]) -> pd.DataFrame:
+    keys = list(json_data.keys())
+    ids = []
+    for id_ in keys:
+        ids += [id_] * 4
+    stages = [0, 1, 2, 3]
+    df_dict = {
+        "ID": ids,
+        "Stage": stages * len(keys),
+        "Count": [],
+    }
+
+    def _extract_events(events: dict[str, int]):
+        for key in events.keys():
+            if key not in df_dict:
+                df_dict[key] = [events[key]]
+            else:
+                df_dict[key] += [events[key]]
+
+    for id_ in keys:
+        for stage in stages:
+            df_dict["Count"] += [json_data[id_][str(stage)]['count']]
+            _extract_events(json_data[id_][str(stage)]['events'])
+    return pd.DataFrame(df_dict)
 
 if __name__ == "__main__":
     with open("test.json", "r") as f:
         d = json.load(f)
     print(_load_config_data(d["configurations"]))
+    print(_load_drop_data(d['drops']))
