@@ -51,8 +51,27 @@ def _load_drop_data(json_data: dict[str, dict[str, dict[str, int | dict[str, int
             _extract_events(json_data[id_][str(stage)]['events'])
     return pd.DataFrame(df_dict)
 
+
+def _load_range_data(json_data: dict[str, list[dict[str, int | float | dict[str, int]]]]):
+    keys = json_data.keys()
+    df_dict = {"ID": [], "RSSI": [], "RANGE": [], "MAX_NOISE": [], 'FIRST_PATH_AMP1': [], 'STD_NOISE': [],
+               'FIRST_PATH_AMP2': [], 'FIRST_PATH_AMP3': [], 'MAX_GROWTH_CIR': [], 'RX_PREAMBLE_CNT': [],
+               'FIRST_PATH': [], 'PHE': [], 'RSL': [], 'CRCG': [], 'CRCB': [], 'ARFE': [], 'OVER': [], 'SFDTO': [],
+               'PTO': [], 'RTO': [], 'TXF': [], 'HPW': [], 'TXW': []}
+    for id_ in keys:
+        df_dict["ID"] += [id_] * len(json_data[id_])
+        for sample in json_data[id_]:
+            df_dict["RSSI"] += [sample["RSSI"]]
+            df_dict["RANGE"] += [sample["RANGE"]]
+            for key, val in sample["UWB_DIAGNOSTICS"].items():
+                df_dict[key] += [val]
+            for key, val in sample["EVENTS"].items():
+                df_dict[key] += [val]
+    return pd.DataFrame(df_dict)
+
 if __name__ == "__main__":
     with open("test.json", "r") as f:
         d = json.load(f)
     print(_load_config_data(d["configurations"]))
     print(_load_drop_data(d['drops']))
+    print(_load_range_data(d['samples']))
