@@ -1,6 +1,6 @@
 import json
-import math
 import pandas as pd
+import matplotlib.pyplot as plt
 
 
 def _load_config_data(json_data: dict[str, str | int | bool]) -> pd.DataFrame:
@@ -69,9 +69,35 @@ def _load_range_data(json_data: dict[str, list[dict[str, int | float | dict[str,
                 df_dict[key] += [val]
     return pd.DataFrame(df_dict)
 
+
+class UwbData:
+    def __init__(self, fname: str):
+        with open(fname, 'r') as fd:
+            data = json.load(fd)
+
+        self._df0 = _load_config_data(data["configurations"])
+        self._df1 = _load_drop_data(data['drops'])
+        self._df2 = _load_range_data(data['samples'])
+
+    @property
+    def configs(self) -> pd.DataFrame:
+        return self._df0
+
+    @property
+    def drops(self) -> pd.DataFrame:
+        return self._df1
+
+    @property
+    def samples(self) -> pd.DataFrame:
+        return self._df2
+
+
 if __name__ == "__main__":
     with open("test.json", "r") as f:
         d = json.load(f)
     print(_load_config_data(d["configurations"]))
     print(_load_drop_data(d['drops']))
-    print(_load_range_data(d['samples']))
+    samples = _load_range_data(d['samples'])
+    print(samples["RANGE"].var())
+    hist = samples["RSSI"].hist(bins=3)
+    plt.show()
