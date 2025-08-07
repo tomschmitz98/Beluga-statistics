@@ -93,11 +93,6 @@ class UwbData:
 
 
 if __name__ == "__main__":
-    with open("test.json", "r") as f:
-        d = json.load(f)
-    print(_load_config_data(d["configurations"]))
-    print(_load_drop_data(d['drops']))
-    samples = _load_range_data(d['samples'])
-    print(samples["RANGE"].var())
-    hist = samples["RSSI"].hist(bins=3)
-    plt.show()
+    data = UwbData("test.json")
+    print(data.drops)
+    print(data.samples)
