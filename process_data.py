@@ -123,6 +123,8 @@ class UwbStats:
         A = 121.74 if self._data[range_].configs["Pulse rate"][0] == 1 else 113.77
         rx_level = []
         for C, N in zip(self._data[range_].samples["MAX_GROWTH_CIR"], self._data[range_].samples["RX_PREAMBLE_CNT"]):
+            if C <= 0:
+                C = 1e-9
             rx_level += [(10 * math.log10((C * (2 ** 17)) / (N ** 2))) - A]
         stats["rx_pow_mean"] += [statistics.mean(rx_level)]
         stats["rx_pow_median"] += [statistics.median(rx_level)]
