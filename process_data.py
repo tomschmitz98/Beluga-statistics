@@ -31,6 +31,7 @@ class UwbStats:
             "prr": [],
             "dropped_rx": [],
             "total_rx": [],
+            "mean_cir": [],
             # Add new stats to the end...
         }
 
@@ -128,6 +129,7 @@ class UwbStats:
         stats["rx_pow_stddev"] += [statistics.stdev(rx_level)]
         stats["rx_pow_var"] += [statistics.variance(rx_level)]
         stats["rx_pow"] += [rx_level]
+        stats["mean_cir"] += [self._data[range_].samples["MAX_GROWTH_CIR"].mean()]
 
     def _compute_uwb_fp_power(self, range_: int, stats: dict[str, float | int | list[float]]):
         A = 121.74 if self._data[range_].configs["Pulse rate"][0] == 1 else 113.77
