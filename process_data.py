@@ -178,6 +178,10 @@ class UwbStats:
     def stats(self) -> pd.DataFrame:
         return self._stats
 
+    @property
+    def distances(self) -> list[int]:
+        return list(self._data.keys())
+
 
 if __name__ == "__main__":
     _data = UwbData("test.json")
