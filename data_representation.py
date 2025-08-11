@@ -209,6 +209,30 @@ class DataRepresentation:
         for dist in self._stats.distances:
             _plot_diff_hist(dist, self._stats.stats.loc[dist, 'rx_pow'], self._stats.stats.loc[dist, 'fp'])
 
+    def _plot_rx_pow(self):
+        base = -105
+        x = sorted(self._stats.distances)
+        x_labels = [str(i) for i in x]
+        y = [self._stats.stats.loc[distance, 'rx_pow_mean'] - base for distance in x]
+
+        fig, ax = plt.subplots()
+        bars = ax.bar(x_labels, y, align='center', width=1.0, bottom=base)
+
+        for bar in bars:
+            yval = bar.get_height() + base
+            ax.text(bar.get_x() + bar.get_width() / 2, yval + 0.1, f"{yval:.2f}", ha='center', va='bottom',
+                      rotation=45)
+
+        ax.set_yticks(range(base, 0, 10))
+
+        ax.set_xlabel("Distance (m)")
+        ax.set_ylabel("UWB Received Signal Power (dBm)")
+        ax.set_title("Average UWB Received Signal Power at Distances")
+
+        if self._save_dir is not None:
+            fname = self._save_dir / "distance_v_uwb_rx_power.png"
+            fig.savefig(fname)
+
     def plot(self):
         self._stats.stats.set_index('range', inplace=True)
         if self._enable.rssi:
@@ -228,6 +252,9 @@ class DataRepresentation:
         if self._enable.rx_fp_diff:
             self._plot_uwb_rx_power_and_first_path_power_difference()
             self._plot_rx_fp_difference_hist()
+
+        if self._enable.rx_pow:
+            self._plot_rx_pow()
 
         if self._show:
             plt.show()
