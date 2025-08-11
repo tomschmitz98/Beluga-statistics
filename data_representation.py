@@ -138,6 +138,28 @@ class DataRepresentation:
             fname = self._save_dir / "distance_v_measured_dist.png"
             fig.savefig(fname)
 
+    def _plot_prr(self):
+        base = 0
+        x = sorted(self._stats.distances)
+        y = [self._stats.stats.loc[distance, 'prr'] - base for distance in x]
+
+        fig, ax = plt.subplots()
+        bars = ax.bar([str(i) for i in x], y, align='center', width=1.0, bottom=base)
+
+        for bar in bars:
+            yval = bar.get_height() + base
+            ax.text(bar.get_x() + bar.get_width() / 2, yval + 0.1, f"{yval:.1f}", ha='center', va='bottom', rotation=45)
+
+        ax.set_yticks([i for i in range(base, 110, 10)])
+
+        ax.set_xlabel("Distance (m)")
+        ax.set_ylabel("UWB Packet Reception Rate (%)")
+        ax.set_title("UWB Packet Reception Rate at Distances")
+
+        if self._save_dir is not None:
+            fname = self._save_dir / "distance_v_prr.png"
+            fig.savefig(fname)
+
     def plot(self):
         self._stats.stats.set_index('range', inplace=True)
         if self._enable.rssi:
@@ -150,6 +172,9 @@ class DataRepresentation:
             self._plot_distance_absolute_error()
             self._plot_distance_relative_error()
             self._plot_experiment_distance()
+
+        if self._enable.prr:
+            self._plot_prr()
 
         if self._show:
             plt.show()
