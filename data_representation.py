@@ -49,6 +49,24 @@ class DataRepresentation:
             fname = self._save_dir / "distance_v_rssi.png"
             fig.savefig(fname)
 
+    def _plot_rssi_hist(self):
+        bins = list(range(-100, 10, 10))
+
+        def _plot_hist(distance, rssi):
+            fig, ax = plt.subplots()
+            ax.hist(rssi, bins)
+            ax.set_xticks(bins)
+            ax.set_xlabel("RSSI")
+            ax.set_title(f"BLE RSSI at {distance}m")
+
+            if self._save_dir is not None:
+                fname = self._save_dir / f"rssi_{distance}m.png"
+                fig.savefig(fname)
+                plt.close(fig)
+
+        for dist in self._stats.distances:
+            _plot_hist(dist, self._stats.data[dist].samples['RSSI'])
+
     def _plot_avg_cir(self):
         base = 0
         x = self._stats.distances
@@ -255,6 +273,7 @@ class DataRepresentation:
         self._stats.stats.set_index('range', inplace=True)
         if self._enable.rssi:
             self._plot_avg_rssi()
+            self._plot_rssi_hist()
 
         if self._enable.cir:
             self._plot_avg_cir()
@@ -289,5 +308,5 @@ if __name__ == "__main__":
         60: UwbData("data/Node 100/60m.json"),
     }
     s = UwbStats(d)
-    p = DataRepresentation(s, enable=GraphEnable(rssi=False, cir=False, ranging_err=True, prr=False, rx_fp_diff=False, rx_pow=False))
+    p = DataRepresentation(s)
     p.plot()
