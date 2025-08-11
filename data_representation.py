@@ -70,6 +70,74 @@ class DataRepresentation:
             fname = self._save_dir / "distance_v_cir.png"
             fig.savefig(fname)
 
+    def _plot_distance_absolute_error(self):
+        x = sorted(self._stats.distances)
+        y = [abs(self._stats.stats.loc[distance, 'range_mean'] - distance) for distance in x]
+        stddev_y = [self._stats.stats.loc[distance, 'range_stddev'] for distance in x]
+
+        fig, ax = plt.subplots(nrows=2)
+        ax[0].plot(x, y)
+        ax[1].plot(x, stddev_y)
+
+        ax[0].set_xlabel("Distance (m)")
+        ax[0].set_ylabel("Absolute error (m)")
+        ax[0].set_title("Measurement Absolute Error at Distance")
+        ax[0].grid(True)
+
+        ax[1].set_xlabel("Distance (m)")
+        ax[1].set_ylabel("Standard deviation (m)")
+        ax[1].set_title("Measurement Relative Error Standard Deviation at Distance")
+        ax[1].grid(True)
+
+        plt.tight_layout()
+
+        if self._save_dir is not None:
+            fname = self._save_dir / "distance_v_meas_abs_err.png"
+            fig.savefig(fname)
+
+    def _plot_distance_relative_error(self):
+        x = sorted(self._stats.distances)
+        y = [(abs(self._stats.stats.loc[distance, 'range_mean'] - distance) / distance) for distance in x]
+        stddev_y = [self._stats.stats.loc[distance, 'range_stddev'] for distance in x]
+
+        fig, ax = plt.subplots(nrows=2)
+        ax[0].plot(x, y)
+        ax[1].plot(x, stddev_y)
+
+        ax[0].set_xlabel("Distance (m)")
+        ax[0].set_ylabel("Relative error (m)")
+        ax[0].set_title("Measurement Relative Error at Distance")
+        ax[0].grid(True)
+
+        ax[1].set_xlabel("Distance (m)")
+        ax[1].set_ylabel("Standard deviation (m)")
+        ax[1].set_title("Measurement Relative Error Standard Deviation at Distance")
+        ax[1].grid(True)
+
+        plt.tight_layout()
+
+        if self._save_dir is not None:
+            fname = self._save_dir / "distance_v_meas_abs_err.png"
+            fig.savefig(fname)
+
+    def _plot_experiment_distance(self):
+        x = sorted(self._stats.distances)
+        y = [self._stats.stats.loc[distance, 'range_mean'] for distance in x]
+
+        fig, ax = plt.subplots()
+        ax.plot(x, x, label="Actual distance")
+        ax.plot(x, y, label="Measured distance")
+
+        ax.set_xlabel("Theoretical Distance (m)")
+        ax.set_ylabel("Measured Range (m)")
+        ax.set_title("UWB Measured Distance at Distance")
+        ax.grid(True)
+        ax.legend()
+
+        if self._save_dir is not None:
+            fname = self._save_dir / "distance_v_measured_dist.png"
+            fig.savefig(fname)
+
     def plot(self):
         self._stats.stats.set_index('range', inplace=True)
         if self._enable.rssi:
@@ -77,6 +145,11 @@ class DataRepresentation:
 
         if self._enable.cir:
             self._plot_avg_cir()
+
+        if self._enable.ranging_err:
+            self._plot_distance_absolute_error()
+            self._plot_distance_relative_error()
+            self._plot_experiment_distance()
 
         if self._show:
             plt.show()
