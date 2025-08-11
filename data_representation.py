@@ -139,6 +139,24 @@ class DataRepresentation:
             fname = self._save_dir / "distance_v_measured_dist.png"
             fig.savefig(fname)
 
+    def _plot_distance_hist(self):
+        bins = list(range(0, 110, 10))
+
+        def _plot_hist(distance, measurements):
+            fig, ax = plt.subplots()
+            ax.hist(measurements, bins)
+            ax.set_xticks(bins)
+            ax.set_xlabel("Measured Distances (m)")
+            ax.set_title(f"Measured Distances at {distance}m")
+
+            if self._save_dir is not None:
+                fname = self._save_dir / f"measured_distance_hist_{distance}m.png"
+                fig.savefig(fname)
+                plt.close(fig)
+
+        for dist in self._stats.distances:
+            _plot_hist(dist, self._stats.data[dist].samples['RANGE'])
+
     def _plot_prr(self):
         base = 0
         x = sorted(self._stats.distances)
@@ -245,6 +263,7 @@ class DataRepresentation:
             self._plot_distance_absolute_error()
             self._plot_distance_relative_error()
             self._plot_experiment_distance()
+            self._plot_distance_hist()
 
         if self._enable.prr:
             self._plot_prr()
@@ -270,5 +289,5 @@ if __name__ == "__main__":
         60: UwbData("data/Node 100/60m.json"),
     }
     s = UwbStats(d)
-    p = DataRepresentation(s, enable=GraphEnable(rssi=False, cir=False, ranging_err=False, prr=False, rx_fp_diff=False))
+    p = DataRepresentation(s, enable=GraphEnable(rssi=False, cir=False, ranging_err=True, prr=False, rx_fp_diff=False, rx_pow=False))
     p.plot()
