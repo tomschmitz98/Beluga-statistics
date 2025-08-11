@@ -3,6 +3,7 @@ import dataclasses
 from pathlib import Path
 from import_data import UwbData
 from process_data import UwbStats
+import statistics
 
 
 @dataclasses.dataclass
@@ -160,6 +161,54 @@ class DataRepresentation:
             fname = self._save_dir / "distance_v_prr.png"
             fig.savefig(fname)
 
+    def _plot_uwb_rx_power_and_first_path_power_difference(self):
+        x = sorted(self._stats.distances)
+        y = [statistics.mean([rx - fp for rx, fp in zip(self._stats.stats.loc[distance, 'rx_pow'], self._stats.stats.loc[distance, 'fp'])]) for distance in x]
+
+        fig, ax = plt.subplots()
+        ax.plot(x, y)
+
+        ax.set_xlabel("Distance (m)")
+        ax.set_ylabel("RX_POWER - FP_POWER (dB)")
+        ax.set_title("Difference between RX Power and First Path Power at Distance")
+        ax.grid(True)
+        ax.hlines(6, x[0], x[-1], label="LOS", colors='green', linestyles='dashed')
+        ax.hlines(10, x[0], x[-1], label="NLOS", colors='red', linestyles='dashed')
+        ax.legend()
+
+        if self._save_dir is not None:
+            fname = self._save_dir / "distance_v_rx_pow_fp_diff.png"
+            fig.savefig(fname)
+
+    def _plot_rx_fp_difference_hist(self):
+        bins = list(range(0, 20))
+
+        def _plot_diff_hist(distance, rx_pow, fp_pow):
+            diff = []
+            for rx, fp in zip(rx_pow, fp_pow):
+                diff += [rx - fp]
+
+            fig, ax = plt.subplots()
+            ax.hist(diff, bins)
+
+            ax.set_xlabel("RX_POWER - FP_POWER (dB)")
+            ax.set_ylabel("Occurrences")
+            ax.set_xticks(bins)
+            ax.set_title(f"RX Power and First Path Power Differences at {distance} m")
+
+            ymin, ymax = ax.get_ylim()
+            ax.vlines(6, ymin, ymax, label="LOS", colors='green', linestyles='dashed')
+            ax.vlines(10, ymin, ymax, label="NLOS", colors='red', linestyles='dashed')
+            ax.legend()
+
+            if self._save_dir is not None:
+                fname = self._save_dir / f"rx-fp_hist_{distance}m.png"
+                fig.savefig(fname)
+                plt.close(fig)
+
+        for dist in self._stats.distances:
+            _plot_diff_hist(dist, self._stats.stats.loc[dist, 'rx_pow'], self._stats.stats.loc[dist, 'fp'])
+
     def plot(self):
         self._stats.stats.set_index('range', inplace=True)
         if self._enable.rssi:
@@ -176,6 +225,10 @@ class DataRepresentation:
         if self._enable.prr:
             self._plot_prr()
 
+        if self._enable.rx_fp_diff:
+            self._plot_uwb_rx_power_and_first_path_power_difference()
+            self._plot_rx_fp_difference_hist()
+
         if self._show:
             plt.show()
 
@@ -190,5 +243,5 @@ if __name__ == "__main__":
         60: UwbData("data/Node 100/60m.json"),
     }
     s = UwbStats(d)
-    p = DataRepresentation(s)
+    p = DataRepresentation(s, enable=GraphEnable(rssi=False, cir=False, ranging_err=False, prr=False, rx_fp_diff=False))
     p.plot()
