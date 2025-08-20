@@ -1,5 +1,5 @@
+import json
 from collections.abc import Callable
-
 from import_data import UwbData
 from process_data import UwbStats
 from data_representation import GraphEnable, DataRepresentation
@@ -25,18 +25,29 @@ class BelugaDataProcessing:
         self._folder: Path = Path(f"data/Node {node}")
         data: dict[int, UwbData] = {}
         for f in self._folder.glob("*.json"):
-            distance = self._extract_distance(f.name)
+            distance = self._extract_distance(f.name, f.absolute())
             data[distance] = UwbData(str(f))
         self._stats = UwbStats(data)
         self._graphs = DataRepresentation(self._stats, show, enable, save_dir)
 
     @staticmethod
-    def _extract_distance(name) -> int:
-        regex = re.compile(f'\d+')
-        numbers = [int(x) for x in regex.findall(name)]
-        if not numbers:
-            raise ValueError("Improperly named file")
-        return numbers[0]
+    def _extract_distance(name, absolute_path) -> int:
+        def extract_from_file():
+            with open(absolute_path) as f:
+                data = json.load(f)
+            return data['distance']
+
+        def extract_from_file_name():
+            regex = re.compile(f'\d+')
+            numbers = [int(x) for x in regex.findall(name)]
+            if not numbers:
+                raise ValueError("Improperly named file")
+            return numbers[0]
+
+        try:
+            return extract_from_file()
+        except KeyError:
+            return extract_from_file_name()
 
     def log_ranging(self, callback: Callable[[any], None] = print):
         self._stats.log_range(callback)
