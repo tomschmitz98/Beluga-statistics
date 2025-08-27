@@ -49,6 +49,9 @@ class DataRepresentation:
             fname = self._save_dir / "distance_v_rssi.png"
             fig.savefig(fname)
 
+        if not self._show:
+            plt.close(fig)
+
     def _plot_rssi_hist(self):
         bins = list(range(-100, 10, 10))
 
@@ -89,14 +92,20 @@ class DataRepresentation:
             fname = self._save_dir / "distance_v_cir.png"
             fig.savefig(fname)
 
+        if not self._show:
+            plt.close(fig)
+
     def _plot_distance_absolute_error(self):
         x = sorted(self._stats.distances)
         y = [abs(self._stats.stats.loc[distance, 'range_mean'] - distance) for distance in x]
         stddev_y = [self._stats.stats.loc[distance, 'range_stddev'] for distance in x]
+        var_y = [self._stats.stats.loc[distance, 'range_var'] for distance in x]
 
-        fig, ax = plt.subplots(nrows=2)
+        fig, ax = plt.subplots(nrows=3)
+        fig.set_size_inches(8, 8)
         ax[0].plot(x, y)
         ax[1].plot(x, stddev_y)
+        ax[2].plot(x, var_y)
 
         ax[0].set_xlabel("Distance (m)")
         ax[0].set_ylabel("Absolute error (m)")
@@ -108,23 +117,34 @@ class DataRepresentation:
         ax[1].set_title("Measurement Relative Error Standard Deviation at Distance")
         ax[1].grid(True)
 
+        ax[2].set_xlabel("Distance (m)")
+        ax[2].set_ylabel("Variance")
+        ax[2].set_title("Measurement Variance at Distance")
+        ax[2].grid(True)
+
         plt.tight_layout()
 
         if self._save_dir is not None:
             fname = self._save_dir / "distance_v_meas_abs_err.png"
             fig.savefig(fname)
 
+        if not self._show:
+            plt.close(fig)
+
     def _plot_distance_relative_error(self):
         x = sorted(self._stats.distances)
         y = [(abs(self._stats.stats.loc[distance, 'range_mean'] - distance) / distance) for distance in x]
         stddev_y = [self._stats.stats.loc[distance, 'range_stddev'] for distance in x]
+        var_y = [self._stats.stats.loc[distance, 'range_var'] for distance in x]
 
-        fig, ax = plt.subplots(nrows=2)
+        fig, ax = plt.subplots(nrows=3)
+        fig.set_size_inches(10, 10)
         ax[0].plot(x, y)
         ax[1].plot(x, stddev_y)
+        ax[2].plot(x, var_y)
 
         ax[0].set_xlabel("Distance (m)")
-        ax[0].set_ylabel("Relative error (m)")
+        ax[0].set_ylabel("Relative error")
         ax[0].set_title("Measurement Relative Error at Distance")
         ax[0].grid(True)
 
@@ -133,11 +153,19 @@ class DataRepresentation:
         ax[1].set_title("Measurement Relative Error Standard Deviation at Distance")
         ax[1].grid(True)
 
+        ax[2].set_xlabel("Distance (m)")
+        ax[2].set_ylabel("Variance")
+        ax[2].set_title("Measurement Variance at Distance")
+        ax[2].grid(True)
+
         plt.tight_layout()
 
         if self._save_dir is not None:
-            fname = self._save_dir / "distance_v_meas_abs_err.png"
+            fname = self._save_dir / "distance_v_meas_rel_err.png"
             fig.savefig(fname)
+
+        if not self._show:
+            plt.close(fig)
 
     def _plot_experiment_distance(self):
         x = sorted(self._stats.distances)
@@ -156,6 +184,9 @@ class DataRepresentation:
         if self._save_dir is not None:
             fname = self._save_dir / "distance_v_measured_dist.png"
             fig.savefig(fname)
+
+        if not self._show:
+            plt.close(fig)
 
     def _plot_distance_hist(self):
         bins = list(range(0, 110, 10))
@@ -197,6 +228,9 @@ class DataRepresentation:
             fname = self._save_dir / "distance_v_prr.png"
             fig.savefig(fname)
 
+        if not self._show:
+            plt.close(fig)
+
     def _plot_uwb_rx_power_and_first_path_power_difference(self):
         x = sorted(self._stats.distances)
         y = [statistics.mean([rx - fp for rx, fp in zip(self._stats.stats.loc[distance, 'rx_pow'], self._stats.stats.loc[distance, 'fp'])]) for distance in x]
@@ -215,6 +249,9 @@ class DataRepresentation:
         if self._save_dir is not None:
             fname = self._save_dir / "distance_v_rx_pow_fp_diff.png"
             fig.savefig(fname)
+
+        if not self._show:
+            plt.close(fig)
 
     def _plot_rx_fp_difference_hist(self):
         bins = list(range(0, 20))
@@ -268,6 +305,9 @@ class DataRepresentation:
         if self._save_dir is not None:
             fname = self._save_dir / "distance_v_uwb_rx_power.png"
             fig.savefig(fname)
+
+        if not self._show:
+            plt.close(fig)
 
     def plot(self):
         self._stats.stats.set_index('range', inplace=True)
