@@ -70,6 +70,34 @@ class DataRepresentation:
         for dist in self._stats.distances:
             _plot_hist(dist, self._stats.data[dist].samples['RSSI'])
 
+    def _plot_rssi_stats(self):
+        x = sorted(self._stats.distances)
+        y_stddev = [self._stats.stats.loc[distance, 'rssi_stddev'] for distance in x]
+        y_var = [self._stats.stats.loc[distance, 'rssi_var'] for distance in x]
+
+        fig, ax = plt.subplots(nrows=2)
+        ax[0].plot(x, y_stddev)
+        ax[1].plot(x, y_var)
+
+        ax[0].set_xlabel("Distance (m)")
+        ax[0].set_ylabel("Standard Deviation")
+        ax[0].set_title("BLE RSSI Standard Deviation")
+        ax[0].grid(True)
+
+        ax[1].set_xlabel("Distance (m)")
+        ax[1].set_ylabel("Variance")
+        ax[1].set_title("BLE RSSI Variance")
+        ax[1].grid(True)
+
+        plt.tight_layout()
+
+        if self._save_dir is not None:
+            fname = self._save_dir / "ble-rssi-stats.png"
+            fig.savefig(fname)
+
+        if not self._show:
+            plt.close(fig)
+
     def _plot_avg_cir(self):
         base = 0
         x = self._stats.distances
@@ -314,6 +342,7 @@ class DataRepresentation:
         if self._enable.rssi:
             self._plot_avg_rssi()
             self._plot_rssi_hist()
+            self._plot_rssi_stats()
 
         if self._enable.cir:
             self._plot_avg_cir()
