@@ -35,7 +35,7 @@ class UwbStats:
             # Add new stats to the end...
         }
 
-        for range_, data_ in self._data.items():
+        for range_, data_ in sorted(self._data.items(), key=lambda kv: kv[0]):
             stat_data["range"] += [range_]
             self._compute_range_stats(range_, stat_data)
             self._compute_rssi_states(range_, stat_data)
