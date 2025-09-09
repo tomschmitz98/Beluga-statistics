@@ -52,6 +52,61 @@ class DataRepresentation:
         if not self._show:
             plt.close(fig)
 
+    def _plot_stddev_hist(self):
+        x = sorted(self._stats.distances)
+        x_labels = [str(i) for i in x]
+        y = [self._stats.stats.loc[distance, 'range_stddev'] for distance in x]
+
+        fig, ax = plt.subplots()
+        bars = ax.bar(x_labels, y, align='center', width=1.0, )
+
+        for bar in bars:
+            yval = bar.get_height()
+            ax.text(bar.get_x() + bar.get_width() / 2, yval + 0.01, f"{yval:.2f}", ha='center', va='bottom', rotation=45)
+
+        ax.set_xlabel("Distance (m)")
+        ax.set_ylabel("Standard Deviation (m)")
+        ax.set_title("Range Standard Deviation at Distance")
+        yticks = list(ax.get_yticks())
+        yticks += [yticks[-1] + yticks[1]]
+        ax.set_yticks(yticks)
+        fig.tight_layout()
+
+        if self._save_dir is not None:
+            fname = self._save_dir / "distance_v_stddev.png"
+            fig.savefig(fname)
+
+        if not self._show:
+            plt.close(fig)
+
+    def _plot_variance_hist(self):
+        x = sorted(self._stats.distances)
+        x_labels = [str(i) for i in x]
+        y = [self._stats.stats.loc[distance, 'range_var'] for distance in x]
+
+        fig, ax = plt.subplots()
+        bars = ax.bar(x_labels, y, align='center', width=1.0, )
+
+        for bar in bars:
+            yval = bar.get_height()
+            ax.text(bar.get_x() + bar.get_width() / 2, yval + 0.01, f"{yval:.2f}", ha='center', va='bottom',
+                    rotation=45)
+
+        ax.set_xlabel("Distance (m)")
+        ax.set_ylabel("Variance")
+        ax.set_title("Range Variance at Distance")
+        yticks = list(ax.get_yticks())
+        yticks += [yticks[-1] + yticks[1]]
+        ax.set_yticks(yticks)
+        fig.tight_layout()
+
+        if self._save_dir is not None:
+            fname = self._save_dir / "distance_v_variance.png"
+            fig.savefig(fname)
+
+        if not self._show:
+            plt.close(fig)
+
     def _plot_rssi_hist(self):
         bins = list(range(-100, 10, 10))
 
@@ -234,6 +289,44 @@ class DataRepresentation:
         for dist in self._stats.distances:
             _plot_hist(dist, self._stats.data[dist].samples['RANGE'])
 
+    def _plot_absolute_error_hist(self):
+        bins = [int(x) / 10.0 for x in range(0, 11)]
+
+        def _plot_hist(distance, measurements):
+            fig, ax = plt.subplots()
+            ax.hist(measurements, bins)
+            ax.set_xticks(bins)
+            ax.set_xlabel("Absolute Distance Error (m)")
+            ax.set_title(f"Absolute errors at {distance}m")
+
+            if self._save_dir is not None:
+                fname = self._save_dir / f"absolute_err_hist_{distance}m.png"
+                fig.savefig(fname)
+                plt.close(fig)
+
+        for dist in self._stats.distances:
+            data = [abs(range_ - dist) for range_ in self._stats.data[dist].samples['RANGE']]
+            _plot_hist(dist, data)
+
+    def _plot_relative_error_hist(self):
+        bins = [int(x) / 100.0 for x in range(0, 11)]
+
+        def _plot_hist(distance, measurements):
+            fig, ax = plt.subplots()
+            ax.hist(measurements, bins)
+            ax.set_xticks(bins)
+            ax.set_xlabel("Relative Distance Error (m)")
+            ax.set_title(f"Relative errors at {distance}m")
+
+            if self._save_dir is not None:
+                fname = self._save_dir / f"relative_err_hist_{distance}m.png"
+                fig.savefig(fname)
+                plt.close(fig)
+
+        for dist in self._stats.distances:
+            data = [abs(range_ - dist) / dist for range_ in self._stats.data[dist].samples['RANGE']]
+            _plot_hist(dist, data)
+
     def _plot_prr(self):
         base = 0
         x = sorted(self._stats.distances)
@@ -350,6 +443,12 @@ class DataRepresentation:
         if self._enable.ranging_err:
             self._plot_distance_absolute_error()
             self._plot_distance_relative_error()
+            self._plot_absolute_error_hist()
+            self._plot_relative_error_hist()
+            self._plot_stddev_hist()
+            self._plot_variance_hist()
+
+        if self._enable.distance:
             self._plot_experiment_distance()
             self._plot_distance_hist()
 
