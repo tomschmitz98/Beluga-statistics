@@ -327,6 +327,46 @@ class DataRepresentation:
             data = [abs(range_ - dist) / dist for range_ in self._stats.data[dist].samples['RANGE']]
             _plot_hist(dist, data)
 
+    def _plot_rel_err_v_distance_hist(self):
+        x = sorted(self._stats.distances)
+        x_labels = [str(dist) for dist in x]
+        range_mean = [self._stats.stats.loc[distance, 'range_mean'] for distance in x]
+        y = [abs((mean - distance) / distance) for mean, distance in zip(range_mean, x)]
+
+        fig, ax = plt.subplots()
+        ax.bar(x_labels, y, align='center', width=1.0, bottom=0)
+
+        ax.set_title("UWB Relative Ranging Error")
+        ax.set_xlabel("Distance (m)")
+        ax.set_ylabel("Relative Error")
+
+        if self._save_dir is not None:
+            fname = self._save_dir / "rel_err_hist.png"
+            fig.savefig(fname)
+
+        if not self._show:
+            plt.close(fig)
+
+    def _plot_abs_err_v_distance_hist(self):
+        x = sorted(self._stats.distances)
+        x_labels = [str(dist) for dist in x]
+        range_mean = [self._stats.stats.loc[distance, 'range_mean'] for distance in x]
+        y = [abs(mean - distance) for mean, distance in zip(range_mean, x)]
+
+        fig, ax = plt.subplots()
+        ax.bar(x_labels, y, align='center', width=1.0, bottom=0)
+
+        ax.set_title("UWB Absolute Ranging Error")
+        ax.set_xlabel("Distance (m)")
+        ax.set_ylabel("Absolute Error (m)")
+
+        if self._save_dir is not None:
+            fname = self._save_dir / "abs_err_hist.png"
+            fig.savefig(fname)
+
+        if not self._show:
+            plt.close(fig)
+
     def _plot_prr(self):
         base = 0
         x = sorted(self._stats.distances)
@@ -447,6 +487,8 @@ class DataRepresentation:
             self._plot_relative_error_hist()
             self._plot_stddev_hist()
             self._plot_variance_hist()
+            self._plot_rel_err_v_distance_hist()
+            self._plot_abs_err_v_distance_hist()
 
         if self._enable.distance:
             self._plot_experiment_distance()
